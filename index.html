@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<title>Skjól · Interactive residence map</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<style>
+html,body{margin:0;height:100%;background:#fff;font-family:-apple-system,"Helvetica Neue",Helvetica,Arial,sans-serif;color:#413A60}
+#ld{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px}
+#ld h1{margin:0;font-size:24px;letter-spacing:.3em;font-weight:600}
+#ld p{margin:0;font-size:13px;letter-spacing:.06em;color:#6e6e73}
+#bar{width:260px;height:4px;background:#e6e4ee;border-radius:4px;overflow:hidden}
+#fill{height:100%;width:0;background:#413A60;transition:width .2s}
+</style></head><body>
+<div id="ld"><h1>SKJÓL</h1><div id="bar"><div id="fill"></div></div><p id="msg">Loading the 3D model</p></div>
+<script>
+(async()=>{
+const N=4, fill=document.getElementById('fill'), msg=document.getElementById('msg');
+try{
+  let done=0; const bufs=new Array(N);
+  await Promise.all(Array.from({length:N},(_,i)=>fetch('portal.'+String(i+1).padStart(2,'0')+'.bin').then(r=>{if(!r.ok)throw new Error(r.status);return r.arrayBuffer()}).then(a=>{bufs[i]=a;done++;fill.style.width=(done/N*90)+'%';})));
+  msg.textContent='Preparing the model';
+  const html=await new Response(new Blob(bufs).stream().pipeThrough(new DecompressionStream('gzip'))).text();
+  fill.style.width='100%';
+  document.open();document.write(html);document.close();
+}catch(e){msg.textContent='The model could not load. Please refresh the page.';console.error(e);}
+})();
+</script></body></html>
